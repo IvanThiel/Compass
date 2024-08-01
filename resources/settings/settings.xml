@@ -1,0 +1,9 @@
+    <settings>
+        <setting propertyKey="@Properties.windspeed" prompt="Windspeed unit"  title="Windspeed unit">
+            <settingConfig type="list">
+                <listEntry value="0">Beaufort</listEntry>
+                <listEntry value="1">m/s</listEntry>
+                <listEntry value="2">km/h</listEntry>
+            </settingConfig>
+        </setting>
+    </settings>
