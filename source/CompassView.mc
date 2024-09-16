@@ -488,14 +488,86 @@ class CompassView extends Ui.DataField {
         var y3;
         var x4;
         var y4;
-        var mWindG = null;
+        // var mWindG = null;
+        var angle = 0;
 
      
         if ((mDistance==null) || (mDistance<100) || (mDistance>1000)) {
           // meer plaats maken voor de afstand tot start punt
           xoffset += 10;
         }
-       
+
+        ////////////////////////////////////////////////////////////// 
+        // WIND VOORSPELLING
+        try {
+          var c = Weather.getHourlyForecast();
+
+          if ((c!=null) && (c.size()>0)) {
+            var n = c.size();
+            if (n>4) {
+              n = 4;
+            }            
+            for (var ii=n-1; ii>=0; ii--) {   
+              var t = 0;
+              if (track!=null) {
+                t = track;
+              }
+                 
+              angle = /*360 -*/ ( (c[ii].windBearing - (t * _180_PI)) - 90 );   
+         
+              var extra = 0.1;
+              var l =  1.0 +extra;
+              var l1 = 0.25;
+              var l2 = 0.35 +extra;
+              
+              var x =  r * Math.cos(angle*_PI_180) * l ;
+              var y =  r * Math.sin(angle*_PI_180) * l ;  
+
+              x1 =  Math.round(r * Math.cos(angle*_PI_180) * (0.77+extra)) ;
+              y1 =  Math.round(r * Math.sin(angle*_PI_180) * (0.77+extra));  
+
+              x2 = Math.round(x + r * Math.cos((angle+90)*_PI_180) * l1);
+              y2 = Math.round(y + r * Math.sin((angle+90)*_PI_180) * l1); 
+                  
+              x3 = Math.round(r * Math.cos(angle*_PI_180) * l2);
+              y3 = Math.round(r * Math.sin(angle*_PI_180) * l2);
+              
+              x4 = Math.round(x + r * Math.cos((angle-90)*_PI_180) * l1);
+              y4 = Math.round(y + r * Math.sin((angle-90)*_PI_180) * l1);             
+      
+              
+              dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_TRANSPARENT);
+              dc.fillPolygon(
+                              [                       
+                              [x1+xoffset,y1+yoffset]
+                              ,[x2+xoffset,y2+yoffset]
+                              ,[x3+xoffset,y3+yoffset]
+                              ]
+                              );
+
+              dc.fillPolygon(
+                              [[x1+xoffset,y1+yoffset]
+                              ,[x3+xoffset,y3+yoffset]
+                              ,[x4+xoffset,y4+yoffset]]
+                              );
+
+              
+              dc.setPenWidth(1);
+              var rr = 255;
+   
+              rr = (ii)*(200/3);
+              
+              dc.setColor(createRGB(rr, rr, rr), Graphics.COLOR_TRANSPARENT);
+              dc.drawLine(x1+xoffset,y1+yoffset,x2+xoffset,y2+yoffset);
+              dc.drawLine(x2+xoffset,y2+yoffset,x3+xoffset,y3+yoffset);
+              dc.drawLine(x3+xoffset,y3+yoffset,x4+xoffset,y4+yoffset);            
+              dc.drawLine(x4+xoffset,y4+yoffset,x1+xoffset,y1+yoffset); 
+            }      
+          }     
+        } catch (ex) {
+          debug("drawwind wind error: "+ex.getErrorMessage());
+        }
+
         ////////////////////////////////////////////////////////////// 
         // WIND GARMIN FORCAST  
         try {
@@ -508,6 +580,7 @@ class CompassView extends Ui.DataField {
           dc.setPenWidth(1);
           dc.drawCircle(xoffset, yoffset, r-27);
 
+         /*
           var c = Weather.getHourlyForecast();
           if ((c!=null) && (c.size()>0)) {
             for (var ii=0; ii<c.size(); ii++) {   
@@ -525,7 +598,7 @@ class CompassView extends Ui.DataField {
                     t = track;
                   }
                   
-                  var angle = 360 - ( (c[ii].windBearing - (t * _180_PI)) - 90 );      
+                  angle = 360 - ( (c[ii].windBearing - (t * _180_PI)) - 90 );      
                   var start = angle + 10;
                   var end   = angle - 10 ;     
 
@@ -533,16 +606,16 @@ class CompassView extends Ui.DataField {
                 }
               }
             }      
-          }     
+          }   
+          */  
         } catch (ex) {
           debug("drawwind wind error: "+ex.getErrorMessage());
         }
-
-
+      
         ////////////////////////////////////////////////////////////// 
         // COMPASS
         try {
-          var angle = 0;  
+          angle = 0;  
           if (track!=null) {
             angle = - (track* _180_PI) - 90;        
           } else {
@@ -631,13 +704,14 @@ class CompassView extends Ui.DataField {
           debug("drawwind compass error: "+ex.getErrorMessage());
         }
 
+      /*
         ////////////////////////////////////////////////////////////// 
         // WIND GARMIN       
         try {
           if ((wind!=null) && (mWindG!=null) && (track!=null)) {                        
             // angle of the wind,points to the wind direction
             if ( (mWindG-wind>10) || (mWindG-wind<-10) ) {   
-              var angle = (mWindG - (track * _180_PI)) - 90;  
+              angle = (mWindG - (track * _180_PI)) - 90;  
               var extra = 0.1;
               var l =  1.0 +extra;
               var l1 = 0.25;
@@ -669,12 +743,12 @@ class CompassView extends Ui.DataField {
         } catch (ex) {
           debug("drawwind wind error: "+ex.getErrorMessage());
         }
-
+      */
         ////////////////////////////////////////////////////
         // BEARING, terug naar start
         try {
           if ((bearing!=null) && (track!=null)) {
-            var angle = (-track + bearing)*_180_PI - 90;
+            angle = (-track + bearing)*_180_PI - 90;
             var extra = 0.1;
             var l  = 0.35 + extra;
             var l1 = 0.55 + extra;
@@ -739,7 +813,7 @@ class CompassView extends Ui.DataField {
         try {
           if ((wind!=null) && (track!=null)) {                  
             // angle of the wind,points to the wind direction
-            var angle = (wind - (track * _180_PI)) - 90;  
+            angle = (wind - (track * _180_PI)) - 90;  
             var extra = 0.1;
             var l =  1.0 +extra;
             var l1 = 0.25;
